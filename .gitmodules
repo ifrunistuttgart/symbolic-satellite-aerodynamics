@@ -1,0 +1,3 @@
+[submodule "external_dependencies/symbolic-space-math-utils"]
+	path = external_dependencies/symbolic-space-math-utils
+	url = https://github.com/Fabian-Geyer/symbolic-space-math-utils.git
