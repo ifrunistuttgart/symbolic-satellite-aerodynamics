@@ -111,6 +111,123 @@ Each satellite is an instance of the class `saero.Satellite`. The following clas
 We will derive the aerodynamic model symbolically for the following satellite geometry with a variable size bus and two solar panels:
 ![satellite example](docs/images/satellite_example.png)
 
+We start by defining all symbolic variables
+```matlab
+l = sym('l', 'real'); % symbolic bus length
+w = sym('w', 'real'); % symbolic bus width
+h = sym('h', 'real'); % symbolic bus height
+d = sym('d', 'real'); % symbolic distance body cop -> wing cop
+l_w = sym('l_w', 'real'); % symbolic wing length
+w_w = sym('w_w', 'real'); % symbolic wing width
+```
+
+Define satellite bus using the predefined box shape
+
+```matlab
+bus = saero.geometry.shapes.Box(l, w, h, [0;0;0]); % satellite bus as Panel Group instance
+```
+
+Define satellite wings
+```matlab
+% Wing center of pressure in body coordinates
+cop_wings = [0,  0, 0, 0;
+            -d, -d, d, d;
+             0,  0, 0, 0];
+
+% Normal vectors of wings
+normals_wings = [0,  0,  0,  0;
+                 0,  0,  0,  0;
+                 -1, 1, -1,  1];
+
+% Symbolic wing area for each panel
+wing_areas = l_w*w_w.*ones(1,4);
+
+% Define wings as one panel group
+wings = saero.geometry.PanelGroup(cop_wings, normals_wings, wing_areas);
+```
+
+and define the full geometry with
+```matlab
+% Full geometry (Bus + Wings)
+sat_geometry = saero.geometry.SatelliteGeometry([bus; wings]);
+```
+
+we now have the object `sat_geometry` which clearly defines our satellites geometry. We can inspect the instance in the Matlab terminal
+
+```matlab
+>> sat_geometry
+
+sat_geometry = 
+
+  SatelliteGeometry with properties:
+
+    panel_groups: [2×1 saero.geometry.PanelGroup]
+```
+
+Now we can define a calculation method to obtain aerodynamic forces and torques. Let's use Sentman's method
+
+```matlab
+aero = saero.aerodynamics.Sentman();
+```
+
+Every aerodynamic calculation method needs specific parameters. We can check them with
+```matlab
+>> aero.parameters
+
+ans = 
+
+  struct with fields:
+
+    alpha_E: 0.9500
+         si: 5
+         Tw: 300
+         Vi: 7800
+        rho: 1.0000e-10
+         kB: 1.3806e-23
+         mT: 2.6569e-26
+```
+
+let's say we want to change the density to a symbolic value `rho`. We do this with
+```matlab
+aero.parameters.rho = sym('rho', 'real');
+```
+
+Finally, we use the geometry and the calculation model to define the `saero.Satellite` instance:
+```matlab
+% Full satellite
+sat = saero.Satellite( ...
+    "calculation_model",aero, "satellite_geometry", sat_geometry);
+```
+
+Now we can use the class methods to calculate forces and torques. For example we can obtain the symbolic expression of the total torque with
+```matlab
+% We have to define the incoming velocity vector of length 1:
+% Here, we do it symbolically:
+incoming_velocity = sym('vi', [3,1]);
+
+% Obtain symbolic torque expression
+torqueExpr = sat.get_total_aerodynamic_torque(incoming_velocity)
+
+% Optional: turn into Matlab Function handle:
+torqueFun = matlabFunction(torqueExpr)
+```
+
+This way of defining satellite models yields much freedom. For example we can use a transformation matrix to introduce Euler angles with the included `symbolic-space-math-utils` toolbox:
+
+```matlab
+% Define Aerodynamic angles
+alpha = sym('a', 'real');
+beta = sym('b', 'real');
+
+% Transformation Matrix from aerodynamic frame to body frame
+T_fa = ssmu.dcm.T2(alpha)*ssmu.dcm.T3(-beta);
+
+% Transform wind vector based on current attitude w.r.t. wind
+vi_B = T_fa*[1;0;0]
+
+% Obtain torque as function of alpha/beta
+torqueAB = sat.get_total_aerodynamic_torque(vi_B)
+```
 
 ## References
 
