@@ -1,0 +1,3 @@
+[submodule "external_dependencies/symbolic-satellite-aerodynamics"]
+	path = external_dependencies/symbolic-satellite-aerodynamics
+	url = https://github.com/ifrunistuttgart/symbolic-satellite-aerodynamics.git
