@@ -15,7 +15,7 @@ Using symbolic variables allows for workflows such as:
 - High fidelity computations
 
 ## Requirements
-- Install the [Matlab symbolic toolbox](https://de.mathworks.com/products/symbolic.html)
+- Install the [Matlab symbolic toolbox](https://mathworks.com/products/symbolic.html)
 
 ## Install
 Open the terminal and run:
