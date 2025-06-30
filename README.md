@@ -72,7 +72,7 @@ cop_pos = - center_of_mass + ...
             0,   0,     w/2,  0,   -w/2,   0;
             0,   0,     0,    -h/2,   0,     h/2];
 
-myBox = saero.geometry.PanelGroup(cop_pos, normals, areas);
+body = saero.geometry.PanelGroup(cop_pos, normals, areas);
 ```
 
 ### Geometry
