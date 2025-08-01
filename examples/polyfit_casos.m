@@ -65,3 +65,9 @@ surface(X1,X2,Y, EdgeAlpha=0, MeshStyle="both");
 surface(X1,X2,YP, EdgeAlpha=0);
 axis equal
 hold off;
+
+
+%% Call fit function
+x = casos.PD('x', 2);
+p = casos.PS.sym('c',monomials(x, [0:2]));
+[S, sol] = cfit.fit([X1(:), X2(:)], Y(:), p);
