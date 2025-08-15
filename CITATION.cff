@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: "symbolic-satellite-aerodynamics"
+license: "BSD 3-Clause"
+type: software
+abstract: "This toolbox aims to simplify the process quickly obtaining aerodynamic models for satellites with simple geometries using panel methods while allowing the user to define all possible variables as Matlab symbolic expressions."
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: Fabian
+    family-names: Geyer
+    email: fbn.geyer@gmail.com
+    orcid: 'https://orcid.org/0009-0001-8967-5279'
+    affiliation: >-
+      Institute of Flight Mechanics and Controls (iFR),
+      University of Stuttgart
+  - given-names: Friedrich
+    family-names: Tuttas
+    orcid: 'https://orcid.org/0000-0002-2950-1517'
+    email: f.tuttas@mail.de
+    affiliation: >-
+      Institute of Flight Mechanics and Controls (iFR),
+      University of Stuttgart
+  - given-names: Torbjørn
+    family-names: Cunis
+    email: torbjoern.cunis@ifr.uni-stuttgart.de
+    affiliation: >-
+      Institute of Flight Mechanics and Controls (iFR),
+      University of Stuttgart
+    orcid: 'https://orcid.org/0000-0003-1672-4321'
+  - given-names: Walter
+    family-names: Fichter
+    email: fichter@ifr.uni-stuttgart.de
+    affiliation: >-
+      Institute of Flight Mechanics and Controls (iFR),
+      University of Stuttgart
+    orcid: 'https://orcid.org/0000-0002-3688-3250'
+keywords:
+  - satellite aerodynamics
+  - aerospace engineering
+  - symbolic modelling
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.16880719
+repository-code: 'https://github.com/ifrunistuttgart/symbolic-satellite-aerodynamics'
