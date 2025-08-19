@@ -1,27 +1,29 @@
 # Symbolic Satellite Aerodynamics Toolbox
-This toolbox aims to simplify the process quickly obtaining aerodynamic models for satellites with simple geometries using panel methods while allowing the user to define all possible variables as Matlab symbolic expressions.
-The toolbox can calculate forces and torques of a user defined geometry using different aerodynamic models for Free Molecular Flow (e.g. Sentman).
+This toolbox simplifies the process of quickly obtaining aerodynamic models for satellites with simple geometries using panel methods. It allows users to define all variables as Matlab symbolic expressions.
+The toolbox can calculate forces and torques for user-defined geometries using different aerodynamic models for Free Molecular Flow (e.g., Sentman).
 
-This toolbox not only evaluates forces numerically for given inputs, but actually allows the user to obtain analytical aerodynamic models (e.g. calculation of forces) as Matlab Function handles.
+Unlike purely numerical tools, this toolbox enables users to obtain analytical aerodynamic models (e.g., force expressions) as Matlab function handles.
 
 ### What you can do
 Using symbolic variables allows for workflows such as:
 - Defining a satellite bus with a symbolic length `l`
-- Defining a satellite with rotatable panel geometries by defining rotation angles as symbolic variables
-- Obtaining the torque of a satellite with symbolic variables as a matlab Function handle
+- Defining a satellite with rotatable panel geometries by introducing symbolic rotation angles
+- Obtaining the torque of a satellite with symbolic variables as a Matlab function handle
 
-### What this toolbox is CAN NOT DO
-- Computing wether a panel is shadowed by other panels
-- High fidelity computations
+### What this toolbox is CANNOT do
+- Computing whether a panel is shadowed by other panels
+- Provide high-fidelity computations
 
 ## Requirements
-- Install Matlab **with** the [Matlab Symbolic Math Toolbox](https://mathworks.com/products/symbolic.html)
-- Install [git](https://git-scm.com/downloads)
+- Matlab **with** the [Matlab Symbolic Math Toolbox](https://mathworks.com/products/symbolic.html)
+- [git](https://git-scm.com/downloads)
 
-## Install
-Then you can either
+## Installation
+You can either:
 - Download the `.zip` file of this repository to your preferred location **or**
-- Use the terminal (on Windows for example using git bash) and clone the repository to your preferred location: `git clone https://github.com/ifrunistuttgart/symbolic-satellite-aerodynamics.git`
+- Clone the repository using git:  
+  ```bash
+  git clone https://github.com/ifrunistuttgart/symbolic-satellite-aerodynamics.git
 
 (Optional if you want to use the `+ssmu` functionality):
 Open the terminal in the root folder of this project and run
@@ -30,10 +32,10 @@ git submodule update --init --recursive
 ```
 
 ## Add to path
-To make sure the toolbox is on the Matlab Path there are three options:
-- Each time you open this repo in Matlab, double click on `Symbolicvleoaerodynamics.prj` **or** (recommended)
+To ensure the toolbox is on the Matlab path, choose one of the following:
+- Each time you open this repo in Matlab, double-click `Symbolicvleoaerodynamics.prj` (recommended) **or**
 - make sure the `+saero` folder in available on the Matlab path **or** 
-- simply run
+- run
 ```matlab
 openProject('.')
 ```
@@ -47,9 +49,16 @@ All coordinates are defined in the body reference frame (fixed with respect to t
 ## Usage
 
 ### Satellite Geometries
-Each satellite has a `SatelliteGeometry` which consists of (potentially several) `PanelGroup` objects. A Panel group is simply a collection of single sided panels defined by a center of pressure (3x1), a normal vector pointing outwards (3x1) and an area (1x1). Centers of pressure, normal vectors and areas are then combined to a matrix (vector for areas) of size (3xn) or (1xn - Areas) respectively.
 
-As a user you need to build your satellites geometry by defining these panel groups.
+Each satellite has a SatelliteGeometry, which consists of one or more PanelGroup objects.
+A PanelGroup is a collection of single-sided panels defined by:
+- Center of pressure (3×1)
+- Outward-pointing normal vector (3×1)
+- Area (1×1)
+
+These properties are combined into matrices (for centers/normals - 3xn) or vectors (for areas - 1xn), which may contain symbolic expressions.
+
+Users construct their satellite geometries by defining such panel groups.
 
 ### Panel group
 You can simply use predefined shapes like
@@ -62,7 +71,7 @@ center_of_mass = [0;0;0];
 body = saero.geometry.shapes.Box(l, w, h, center_of_mass);
 ```
 
-Alternatively you can simply manually define a satellite panel proup by providing panel normals, positions of each panels center of pressure and panel areas:
+Alternatively you can simply manually define a satellite panel group by providing panel normals, positions of each panels center of pressure and panel areas:
 
 ```
 % Panel normals (unit vectors)
@@ -106,7 +115,58 @@ sentman = saero.aerodynamics.Sentman( ...
     "alpha_E", 0.95, ...
     "rho", 1e-11);
 ```
-where all other model parameters are kept at the default value.
+where all other model parameters are kept at the default value. you can also see the current parameter settings with 
+
+```matlab console
+>> sentman.parameters
+```
+in the Matlab console.
+
+Here is an overview of all parameters:
+| Variable  | Description                                   | Method(s) Used          | SI Unit           |
+| --------- | --------------------------------------------- | ----------------------- | ----------------- |
+| `alpha_E` | Energy accommodation coefficient              | Sentman                 | – (dimensionless) |
+| `si`      | Molecular speed ratio                         | Sentman; Schaaf–Chambre | – (dimensionless) |
+| `Tw`      | Wall temperature                              | Sentman; Schaaf–Chambre | K                 |
+| `Vi`      | Norm of incoming particle velocity            | Sentman; Schaaf–Chambre | m/s               |
+| `rho`     | Density                                       | Sentman; Schaaf–Chambre | kg/m³             |
+| `kB`      | Boltzmann constant                            | Sentman                 | J/K               |
+| `mT`      | Particle mass                                 | Sentman                 | kg                |
+| `sigma_n` | Normal momentum accommodation coefficient     | Schaaf–Chambre          | – (dimensionless) |
+| `sigma_t` | Tangential momentum accommodation coefficient | Schaaf–Chambre          | – (dimensionless) |
+| `T_inf`   | Free-stream temperature                       | Schaaf–Chambre          | K                 |
+
+
+
+## Obtaining Torque/Force Expressions
+
+Assume you defined a symbolic satellite `sat`. Define the incoming velocity vector, e.g., if facing the flow directly:
+
+$$
+v_i = [-1, 0, 0]^\top
+$$
+
+```matlab
+vi = [-1;0;0];
+forceExpr = sat.getTotalAerodynamicForce(vi);
+torqueExpr = sat.getTotalAerodynamicTorque(vi);
+```
+
+> `vi` can also be symbolic (3×1). Ensure it is normalized when evaluating.
+
+Turn expressions into Matlab function handles:
+
+```matlab
+forceFun = matlabFunction(forceExpr);
+torqueFun = matlabFunction(torqueExpr);
+```
+
+See [Matlab’s `matlabFunction` docs](https://de.mathworks.com/help/symbolic/sym.matlabfunction.html).
+
+**Key advantage:** Every satellite parameter can be symbolic, giving function handles that depend on those variables. This enables fast parametric studies of aerodynamic behavior.
+
+---
+
 
 
 ## Defining the satellite
