@@ -15,33 +15,39 @@ Using symbolic variables allows for workflows such as:
 - High fidelity computations
 
 ## Requirements
-- Install Matlab with the [Matlab Symbolic Math Toolbox](https://mathworks.com/products/symbolic.html)
+- Install Matlab **with** the [Matlab Symbolic Math Toolbox](https://mathworks.com/products/symbolic.html)
 - Install [git](https://git-scm.com/downloads)
 
 ## Install
-Open the terminal and run:
+Then you can either
+- Download the `.zip` file of this repository to your preferred location **or**
+- Use the terminal (on Windows for example using git bash) and clone the repository to your preferred location: `git clone https://github.com/ifrunistuttgart/symbolic-satellite-aerodynamics.git`
+
+(Optional if you want to use the `+ssmu` functionality):
+Open the terminal in the root folder of this project and run
 ```bash
 git submodule update --init --recursive
 ```
 
 ## Add to path
-You can either make sure the `+saero` folder in available on the Matlab path or simply run
+To make sure the toolbox is on the Matlab Path there are three options:
+- Each time you open this repo in Matlab, double click on `Symbolicvleoaerodynamics.prj` **or** (recommended)
+- make sure the `+saero` folder in available on the Matlab path **or** 
+- simply run
 ```matlab
 openProject('.')
 ```
 in the root project folder. 
 
-Alternatively double click the `Symbolicvleoaerodynamics.prj` file to setup the project with correct path dependencies.
-
 ----------------------------
 
 ## Coordinate Systems
-All coordinates are defined in the body reference frame. All normal vectors are assumed to be unit vectors. The `B`-frame is defined as a right hand system.
+All coordinates are defined in the body reference frame (fixed with respect to the satellite geometry). All normal vectors are assumed to be unit vectors. The `B`-frame is defined as a right hand system.
 
 ## Usage
 
 ### Satellite Geometries
-Each satellite has a `SatelliteGeometry` which consists of (potentially several) `PanelGroup` objects.
+Each satellite has a `SatelliteGeometry` which consists of (potentially several) `PanelGroup` objects. A Panel group is simply a collection of single sided panels defined by a center of pressure (3x1), a normal vector pointing outwards (3x1) and an area (1x1). Centers of pressure, normal vectors and areas are then combined to a matrix (vector for areas) of size (3xn) or (1xn - Areas) respectively.
 
 As a user you need to build your satellites geometry by defining these panel groups.
 
@@ -56,7 +62,7 @@ center_of_mass = [0;0;0];
 body = saero.geometry.shapes.Box(l, w, h, center_of_mass);
 ```
 
-Alternatively you can simply manually define a satellite geometry by providing panel normals, positions of each panels center of pressure and panel areas:
+Alternatively you can simply manually define a satellite panel proup by providing panel normals, positions of each panels center of pressure and panel areas:
 
 ```
 % Panel normals (unit vectors)
@@ -81,6 +87,7 @@ then you can simply define the geometry with
 ```matlab
 satellite_geometry = saero.geometry.SatelliteGeometry([body])
 ```
+A geometry is basically just a list of panel groups.
 
 ## Calculation Methods
 Each satellite has a calculation method to obtain aerodynamic forces (and torques).
