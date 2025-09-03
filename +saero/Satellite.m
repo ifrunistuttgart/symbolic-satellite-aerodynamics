@@ -52,6 +52,47 @@ classdef Satellite < handle
                 wind_direction__B)
             torque_B = sum(obj.get_aeroynamic_torque(wind_direction__B), 2);
         end
+
+        % Compute aerodynamic equilibria
+        function [equilibria_table] = ...
+            get_aerodynamic_equilibria(obj, input_ranges)
+            equilibria_table = table(fieldnames(input_ranges)); % nx2 matrix
+            
+            % Parametrize using alpha and beta
+            alpha = sym("alpha");
+            beta = sym("beta");
+            
+            % aerodynamic direction in body coordinates using alpha/beta
+            vi_B = ssmu.dcm.aeroToBody(alpha, beta)*[-1;0;0];
+            
+            % get torque expression with alpha/beta parametrization
+            torque_expr = obj.get_total_aerodynamic_torque(vi_B);
+
+            % extract additional variables (without alpha and beta) in
+            % alphabetical order
+            extra_vars = reshape(symvar(torque_expr), 1, []);
+            extra_vars(ismember(extra_vars, [alpha, beta])) = [];
+
+            % make sure the input ranges struct is ordered alphabetically
+            input_ranges = orderfields(input_ranges, ...
+                sort(fieldnames(input_ranges)));
+
+            % make sure user has provided input ranges for all symvars
+            if ~isequal(...
+                    reshape(string(fieldnames(input_ranges)), [], 1), ...
+                    reshape(string(extra_vars),[],1))
+            
+                expected = strjoin(string(extra_vars), ", ");
+                defined  = strjoin(string(fieldnames(input_ranges)), ", ");
+            
+                error("Mismatch in variable definitions.\n" + ...
+                    "Expected (extra_vars): %s\n" + ...
+                    "Defined (struct fields): %s", ...
+                    expected, defined);
+            end
+
+            
+        end
     end
 end
 
