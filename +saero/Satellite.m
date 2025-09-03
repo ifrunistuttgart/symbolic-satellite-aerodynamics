@@ -54,9 +54,8 @@ classdef Satellite < handle
         end
 
         % Compute aerodynamic equilibria
-        function [equilibria_table] = ...
+        function [dataTab] = ...
             get_aerodynamic_equilibria(obj, input_ranges)
-            equilibria_table = table(fieldnames(input_ranges)); % nx2 matrix
             
             % Parametrize using alpha and beta
             alpha = sym("alpha");
@@ -90,6 +89,32 @@ classdef Satellite < handle
                     "Defined (struct fields): %s", ...
                     expected, defined);
             end
+            
+            % loop all input range fields and make sure they are vectors or
+            % scalars
+            fields = fieldnames(input_ranges);
+            for i=1:numel(fields)
+                data = input_ranges.(string(fields(i)));
+                if ~isvector(data)
+                    error("data field ... is not valid. Must be numerical vector")
+                end
+
+                % reshape to nx1 vector
+                input_ranges.(string(fields(i))) = reshape(data, [], 1);
+            end
+
+            % use ndgrid to get all combinations of input values
+            range_values = struct2cell(input_ranges);
+            [X{1:numel(fields)}] = ndgrid(range_values{:});
+            
+            % Save input data to table so the user knows which variable
+            % values correspond to which resulting equilibrium
+            dataTab = table;
+            for i=1:numel(fields)
+                dataTab.(string(fields(i))) = X{i}(:);
+            end
+            
+            equilibria = nan(size(X{1}(:)))
 
             
         end
