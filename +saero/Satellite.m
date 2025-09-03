@@ -55,7 +55,18 @@ classdef Satellite < handle
 
         % Compute aerodynamic equilibria
         function [dataTab] = ...
-            get_aerodynamic_equilibria(obj, input_ranges)
+            get_aerodynamic_equilibria(obj, input_ranges, options)
+            % Compute aerodynamic equilibria for all parameter combinations
+            %
+            % input_ranges : struct with input ranges (alphabetically sorted fields)
+            % options      : (name-value pair arguments)
+            %   UseParallel (logical) : run with parfor instead of for [default: false]
+        
+            arguments
+                obj
+                input_ranges (1,1) struct
+                options.UseParallel (1,1) logical = false
+            end
             
             % Parametrize using alpha and beta
             alpha = sym("alpha");
@@ -115,26 +126,56 @@ classdef Satellite < handle
             end
             
             % preallocate memory for equilibria results
-            equilibria = nan(size(X{1}(:),1), 2);
+            nCases = size(X{1}(:),1);
+            equilibria = nan(nCases, 2);
             
             % Function that provides torque, inputs ordered
             torque_fun = matlabFunction(torque_expr, ...
-                Vars=[alpha;beta;extra_vars.']);
+                'Vars',[alpha;beta;extra_vars.']);
 
-            % define rootfinding problem with vector input
+            % Solver options
             options = optimoptions('fsolve', ...
                 'Algorithm','levenberg-marquardt', ...
                 'Display','none');
+
             factor = 1e6;
+            
+            % Collect all input combinations into matrix
             input_values = cell2mat( ...
                 cellfun(@(M) M(:), X, 'UniformOutput', false) ...
-                );
-            inputs = num2cell(input_values(1,:));
-            root = @(alphaBeta) factor.*torque_fun( ...
-                alphaBeta(1), alphaBeta(2), inputs{:});
+            );
+
+            % Initial guess (could also store & update later)
+            x0 = [0;0];
+
+            % Choose loop type based on UseParallel
+            if options.UseParallel
+                parfor k = 1:nCases
+                    inputs = num2cell(input_values(k,:));
+                    root = @(alphaBeta) factor .* torque_fun( ...
+                        alphaBeta(1), alphaBeta(2), inputs{:});
+                    try
+                        equilibria(k,:) = fsolve(root, x0, options);
+                    catch
+                        equilibria(k,:) = [NaN NaN];
+                    end
+                end
+            else
+                for k = 1:nCases
+                    inputs = num2cell(input_values(k,:));
+                    root = @(alphaBeta) factor .* torque_fun( ...
+                        alphaBeta(1), alphaBeta(2), inputs{:});
+                    try
+                        equilibria(k,:) = fsolve(root, x0, options);
+                    catch
+                        equilibria(k,:) = [NaN NaN];
+                    end
+                end
+            end
             
-            % Solve rootfinding problem
-            equilibria(1,:) = fsolve(root, [0;0], options);
+            % Store in output table
+            dataTab.alpha_sol = equilibria(:,1);
+            dataTab.beta_sol  = equilibria(:,2);
         end
     end
 end
