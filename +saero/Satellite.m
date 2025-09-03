@@ -114,9 +114,27 @@ classdef Satellite < handle
                 dataTab.(string(fields(i))) = X{i}(:);
             end
             
-            equilibria = nan(size(X{1}(:)))
-
+            % preallocate memory for equilibria results
+            equilibria = nan(size(X{1}(:),1), 2);
             
+            % Function that provides torque, inputs ordered
+            torque_fun = matlabFunction(torque_expr, ...
+                Vars=[alpha;beta;extra_vars.']);
+
+            % define rootfinding problem with vector input
+            options = optimoptions('fsolve', ...
+                'Algorithm','levenberg-marquardt', ...
+                'Display','none');
+            factor = 1e6;
+            input_values = cell2mat( ...
+                cellfun(@(M) M(:), X, 'UniformOutput', false) ...
+                );
+            inputs = num2cell(input_values(1,:));
+            root = @(alphaBeta) factor.*torque_fun( ...
+                alphaBeta(1), alphaBeta(2), inputs{:});
+            
+            % Solve rootfinding problem
+            equilibria(1,:) = fsolve(root, [0;0], options);
         end
     end
 end
