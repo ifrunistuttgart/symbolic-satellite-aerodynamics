@@ -2,7 +2,7 @@ classdef Satellite < handle
     %SATELLITE Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (SetAccess=private)
+    properties (SetAccess=public)
         calculation_model (1,1)
         geometry (1,1) saero.geometry.SatelliteGeometry
     end
@@ -197,6 +197,7 @@ classdef Satellite < handle
             dataTab.alpha_sol = equilibria(:,1);
             dataTab.beta_sol  = equilibria(:,2);
         end
+
     end
 end
 
