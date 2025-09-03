@@ -66,6 +66,7 @@ classdef Satellite < handle
                 obj
                 input_ranges (1,1) struct
                 options.UseParallel (1,1) logical = false
+                options.UseFileGeneration (1,1) logical = true
             end
             
             % Parametrize using alpha and beta
@@ -129,9 +130,28 @@ classdef Satellite < handle
             nCases = size(X{1}(:),1);
             equilibria = nan(nCases, 2);
             
-            % Function that provides torque, inputs ordered
-            torque_fun = matlabFunction(torque_expr, ...
-                'Vars',[alpha;beta;extra_vars.']);
+
+            if ~options.UseFileGeneration
+                % Function that provides torque, inputs ordered
+                torque_fun = matlabFunction(torque_expr, ...
+                    'Vars',[alpha;beta;extra_vars.']);
+            else
+                % speed up by evaluating symbolic expression and saving it
+                % as a file in temporary folder
+                tempFolder = tempdir;
+                funFile = fullfile(tempFolder, 'torque_fun.m');
+                matlabFunction(torque_expr, ...
+                                'File', funFile, ...
+                                'Vars',[alpha;beta;extra_vars.']);
+                % Add temp folder to path
+                addpath(tempFolder);
+                
+                % Function handle to compiled torque
+                torque_fun = @torque_fun;
+            end
+
+
+
 
             % Solver options
             options = optimoptions('fsolve', ...
