@@ -300,3 +300,8 @@ torqueAB = sat.get_total_aerodynamic_torque(vi_B)
 
 1. H. Sentman, “FREE MOLECULE FLOW THEORY AND ITS APPLICATION TO THE DETERMINATION OF AERODYNAMIC FORCES”.
 2. S. A. Schaaf and P. L. Chambre, Flow of Rarefied Gases. Princeton University Press, 1958.
+
+
+
+# Known issues
+- When using Git bash on Windows you might encounter **issues due to long file paths**. The solution is to setup git with `git config --system core.longpaths true` and to run `git submodule update --init --recursive` again
