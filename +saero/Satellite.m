@@ -167,6 +167,10 @@ classdef Satellite < handle
 
             % Initial guess (could also store & update later)
             x0 = [0;0];
+            
+            % Check if solution is actual root
+            is_root = nan(nCases, 1);
+            tolerance = 1e-8;
 
             % Choose loop type based on UseParallel
             if options.UseParallel
@@ -175,7 +179,9 @@ classdef Satellite < handle
                     root = @(alphaBeta) factor .* torque_fun( ...
                         alphaBeta(1), alphaBeta(2), inputs{:});
                     try
-                        equilibria(k,:) = fsolve(root, x0, options);
+                        [equilibria(k,:), fval] = fsolve(root, x0, options);
+                        % Check if solution is valid within tolerance
+                        is_root(k) = all(abs(fval) < tolerance);
                     catch
                         equilibria(k,:) = [NaN NaN];
                     end
@@ -186,7 +192,9 @@ classdef Satellite < handle
                     root = @(alphaBeta) factor .* torque_fun( ...
                         alphaBeta(1), alphaBeta(2), inputs{:});
                     try
-                        equilibria(k,:) = fsolve(root, x0, options);
+                        [equilibria(k,:), fval] = fsolve(root, x0, options);
+                        % Check if solution is valid within tolerance
+                        is_root(k) = all(abs(fval) < tolerance);
                     catch
                         equilibria(k,:) = [NaN NaN];
                     end
@@ -196,6 +204,7 @@ classdef Satellite < handle
             % Store in output table
             dataTab.alpha_sol = equilibria(:,1);
             dataTab.beta_sol  = equilibria(:,2);
+            dataTab.is_root = is_root;
         end
 
     end
