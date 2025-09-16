@@ -192,7 +192,8 @@ classdef Satellite < handle
                     root = @(alphaBeta) factor .* torque_fun( ...
                         alphaBeta(1), alphaBeta(2), inputs{:});
                     try
-                        [equilibria(k,:), fval] = fsolve(root, x0, options);
+                        [equilibria(k,:), fval, exit_flag, output] = ...
+                            fsolve(root, x0, options);
                         % Check if solution is valid within tolerance
                         is_root(k) = all(abs(fval) < tolerance);
                     catch
